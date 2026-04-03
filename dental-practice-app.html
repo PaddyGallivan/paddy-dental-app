@@ -1,0 +1,1610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hobsons Bay Dental — Practice Management</title>
+<style>
+  :root {
+    --primary: #00a3da;
+    --primary-light: #e3f4fb;
+    --primary-dark: #007aaa;
+    --accent: #00a3da;
+    --accent-light: #e3f4fb;
+    --danger: #e74c3c;
+    --danger-light: #fdeaea;
+    --warn: #f0ad4e;
+    --warn-light: #fef5e7;
+    --bg: #d5dde8;
+    --card: #ffffff;
+    --text: #2c3e50;
+    --text-light: #7f8c9b;
+    --border: #e2e8f0;
+    --shadow: 0 2px 12px rgba(0,0,0,0.06);
+    --radius: 12px;
+    --patient-primary: #007aaa;
+    --patient-light: #e3f4fb;
+  }
+
+  body.dark-mode {
+    --bg: #1a1a2e;
+    --card: #16213e;
+    --text: #e0e0e0;
+    --text-light: #b0b0b0;
+    --border: #2d3561;
+    --shadow: 0 2px 12px rgba(0,0,0,0.3);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); min-height:100vh; transition: background 0.3s, color 0.3s; }
+
+  /* LOGIN SCREEN */
+  .login-container { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #1a3a5c 0%, #0d1f33 100%); z-index: 2000; align-items: center; justify-content: center; }
+  .login-container.show { display: flex; }
+  .login-box { background: white; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); width: 100%; max-width: 420px; padding: 40px 32px; }
+  .login-header { text-align: center; margin-bottom: 32px; }
+  .login-header .logo { margin-bottom: 12px; }
+  .login-header .logo img { height: 60px; }
+  .login-header h1 { font-size: 28px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+  .login-header p { font-size: 13px; color: var(--text-light); }
+  .login-tabs { display: flex; gap: 0; margin-bottom: 28px; border-bottom: 2px solid var(--border); }
+  .login-tab { flex: 1; padding: 12px 0; text-align: center; font-size: 13px; font-weight: 600; color: var(--text-light); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.2s; }
+  .login-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+  .login-form { display: none; }
+  .login-form.active { display: block; }
+  .login-form .form-group { margin-bottom: 16px; }
+  .login-form .form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--text-light); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.3px; }
+  .login-form .form-group input { width: 100%; padding: 11px 14px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 14px; font-family: inherit; transition: border 0.2s; }
+  .login-form .form-group input:focus { outline: none; border-color: var(--primary); }
+  .login-form .btn-login { width: 100%; padding: 12px 18px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .login-form .btn-login:hover { background: var(--primary-dark); }
+  .login-footer { text-align: center; margin-top: 16px; font-size: 12px; color: var(--text-light); }
+
+  /* PUN BANNER */
+  .pun-banner { background: linear-gradient(135deg, #ff6b6b 0%, #ffd93d 50%, #6bcf7f 100%); color: white; padding: 12px 20px; text-align: center; font-size: 14px; font-weight: 500; margin-bottom: 16px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; animation: fadeInOut 0.5s ease-in-out; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+  @keyframes fadeInOut {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+  }
+  .pun-banner span { font-size: 18px; }
+
+  /* Layout */
+  .app { display: none; flex: 1; min-height: 100vh; }
+  .app.show { display: flex; }
+  .sidebar { width: 240px; background: linear-gradient(180deg, #1a3a5c 0%, #1a2940 100%); color: #fff; padding: 0; flex-shrink: 0; display:flex; flex-direction:column; transition: background 0.3s; }
+  .sidebar.patient { background: linear-gradient(180deg, #007aaa 0%, #004d6d 100%); }
+  .dark-mode .sidebar { background: linear-gradient(180deg, #0f1827 0%, #0a0e17 100%); }
+  .dark-mode .sidebar.patient { background: linear-gradient(180deg, #004d6d 0%, #003346 100%); }
+  .sidebar-header { padding: 24px 20px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+  .sidebar-header h1 { font-size: 20px; font-weight: 700; display:flex; align-items:center; gap:8px; cursor: pointer; transition: transform 0.3s; }
+  .sidebar-header h1:hover { transform: scale(1.05); }
+  .sidebar-header h1 span { font-size:24px; }
+  .sidebar-header p { font-size: 11px; color: rgba(255,255,255,0.5); margin-top:4px; letter-spacing:0.5px; text-transform:uppercase; }
+  .nav { flex:1; padding: 12px 0; }
+  .nav-item { display:flex; align-items:center; gap:12px; padding: 12px 20px; cursor:pointer; font-size:14px; color:rgba(255,255,255,0.7); transition:all 0.2s; border-left:3px solid transparent; }
+  .nav-item:hover { background:rgba(255,255,255,0.05); color:#fff; }
+  .nav-item.active { background:rgba(255,255,255,0.1); color:#fff; border-left-color:var(--accent); }
+  .nav-item .icon { font-size:18px; width:24px; text-align:center; }
+  .nav-item .badge { margin-left:auto; background:var(--danger); color:#fff; font-size:11px; padding:2px 7px; border-radius:10px; }
+  .sidebar-footer { padding:16px 20px; border-top:1px solid rgba(255,255,255,0.1); font-size:11px; color:rgba(255,255,255,0.4); line-height:1.5; }
+  .sidebar-location { padding:8px 20px; font-size:11px; color:rgba(255,255,255,0.5); border-bottom:1px solid rgba(255,255,255,0.05); }
+  .sidebar-location strong { color:rgba(255,255,255,0.7); }
+  .sidebar-logout { padding: 12px 20px; border-top: 1px solid rgba(255,255,255,0.1); }
+  .sidebar-logout button { width: 100%; background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.8); border: none; padding: 10px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .sidebar-logout button:hover { background: rgba(255,255,255,0.2); color: white; }
+
+  .main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+  .topbar { background:var(--card); padding:16px 28px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--border); transition: background 0.3s; }
+  .topbar h2 { font-size:22px; font-weight:600; }
+  .topbar-actions { display:flex; gap:10px; align-items:center; }
+
+  .content { flex:1; padding:24px 28px; overflow-y:auto; animation: pageSlideIn 0.3s ease-out; }
+  @keyframes pageSlideIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  /* Buttons */
+  .btn { display:inline-flex; align-items:center; gap:6px; padding:9px 18px; border:none; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; transition:all 0.2s; }
+  .btn-primary { background:var(--primary); color:#fff; }
+  .btn-primary:hover { background:var(--primary-dark); }
+  .btn-accent { background:var(--accent); color:#fff; }
+  .btn-accent:hover { opacity:0.9; }
+  .btn-outline { background:transparent; border:1.5px solid var(--border); color:var(--text); transition: all 0.2s; }
+  .btn-outline:hover { border-color:var(--primary); color:var(--primary); }
+  .btn-danger { background:var(--danger); color:#fff; }
+  .btn-danger:hover { opacity:0.9; }
+  .btn-sm { padding:6px 12px; font-size:12px; }
+  .btn-icon { width:36px; height:36px; padding:0; display:flex; align-items:center; justify-content:center; border-radius:8px; border:1.5px solid var(--border); background:var(--card); cursor:pointer; font-size:16px; transition: all 0.2s; }
+  .btn-icon:hover { border-color:var(--primary); color:var(--primary); }
+
+  /* Cards */
+  .card { background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); border:1px solid var(--border); transition: background 0.3s, box-shadow 0.3s; }
+  .card-header { padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .card-header h3 { font-size:15px; font-weight:600; }
+  .card-body { padding:20px; }
+
+  /* Stats */
+  .stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px; }
+  .stat-card { background:var(--card); border-radius:var(--radius); padding:20px; box-shadow:var(--shadow); border:1px solid var(--border); transition: all 0.3s; }
+  .stat-card:hover { transform: translateY(-2px); }
+  .stat-card .stat-icon { width:42px; height:42px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:20px; margin-bottom:12px; }
+  .stat-card .stat-value { font-size:28px; font-weight:700; }
+  .stat-card .stat-label { font-size:12px; color:var(--text-light); margin-top:4px; }
+  .stat-blue .stat-icon { background:var(--primary-light); }
+  .stat-green .stat-icon { background:var(--accent-light); }
+  .stat-red .stat-icon { background:var(--danger-light); }
+  .stat-yellow .stat-icon { background:var(--warn-light); }
+
+  /* Dental Health Grade */
+  .health-grade-container { display: flex; align-items: center; gap: 32px; margin-bottom: 24px; }
+  .health-grade-badge { width: 140px; height: 140px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 56px; font-weight: 700; box-shadow: var(--shadow); border: 3px solid var(--border); animation: badgePulse 2s ease-in-out infinite; }
+  @keyframes badgePulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+  .grade-a-plus { background: linear-gradient(135deg, #2ecc71, #27ae60); color: white; border-color: #27ae60; }
+  .grade-a { background: linear-gradient(135deg, #3498db, #2980b9); color: white; border-color: #2980b9; }
+  .grade-b { background: linear-gradient(135deg, #9b59b6, #8e44ad); color: white; border-color: #8e44ad; }
+  .grade-c { background: linear-gradient(135deg, #f39c12, #e67e22); color: white; border-color: #e67e22; }
+  .grade-d { background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; border-color: #c0392b; }
+  .grade-f { background: linear-gradient(135deg, #95a5a6, #7f8c8d); color: white; border-color: #7f8c8d; }
+  .health-grade-details { flex: 1; }
+  .health-grade-details h3 { font-size: 16px; font-weight: 600; margin-bottom: 12px; }
+  .grade-factor { padding: 12px 0; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+  .grade-factor:last-child { border-bottom: none; }
+  .grade-factor-name { font-size: 13px; color: var(--text-light); }
+  .grade-factor-score { font-size: 14px; font-weight: 600; color: var(--primary); }
+
+  /* Achievement Badges */
+  .achievements-section { margin-bottom: 24px; }
+  .achievements-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .badge-card { background: var(--card); border: 2px solid var(--border); border-radius: 12px; padding: 16px; text-align: center; cursor: default; transition: all 0.3s; }
+  .badge-card.earned { border-color: #ffd700; background: linear-gradient(135deg, rgba(255,215,0,0.1) 0%, rgba(255,215,0,0.05) 100%); }
+  .badge-card.locked { opacity: 0.5; }
+  .badge-icon { font-size: 32px; margin-bottom: 8px; }
+  .badge-name { font-size: 12px; font-weight: 600; margin-bottom: 4px; }
+  .badge-desc { font-size: 10px; color: var(--text-light); }
+  .badge-lock { font-size: 10px; color: var(--text-light); margin-top: 4px; }
+
+  /* Table */
+  .table-wrap { overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  thead th { text-align:left; padding:10px 14px; font-weight:600; color:var(--text-light); font-size:11px; text-transform:uppercase; letter-spacing:0.5px; background:var(--bg); border-bottom:1px solid var(--border); }
+  tbody td { padding:12px 14px; border-bottom:1px solid var(--border); vertical-align:middle; }
+  tbody tr:hover { background:var(--primary-light); }
+  .status-badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; cursor: help; position: relative; }
+  .status-confirmed { background:#d4edda; color:#155724; }
+  .status-pending { background:#fff3cd; color:#856404; }
+  .status-cancelled { background:#f8d7da; color:#721c24; }
+  .status-completed { background:var(--accent-light); color:#0a7c65; }
+  .status-active { background:#d4edda; color:#155724; }
+  .status-overdue { background:#f8d7da; color:#721c24; }
+
+  .status-tooltip { visibility: hidden; width: 160px; background-color: var(--text); color: white; text-align: center; border-radius: 6px; padding: 8px; position: absolute; z-index: 1; bottom: 125%; left: 50%; margin-left: -80px; opacity: 0; transition: opacity 0.3s; font-size: 11px; font-weight: normal; }
+  .status-tooltip::after { content: ""; position: absolute; top: 100%; left: 50%; margin-left: -5px; border-width: 5px; border-style: solid; border-color: var(--text) transparent transparent transparent; }
+  .status-badge:hover .status-tooltip { visibility: visible; opacity: 1; }
+
+  /* Forms / Modal */
+  .modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); z-index:1000; align-items:center; justify-content:center; }
+  .modal-overlay.open { display:flex; }
+  .modal { background:var(--card); border-radius:16px; width:520px; max-height:85vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.2); }
+  .modal-header { padding:20px 24px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .modal-header h3 { font-size:17px; font-weight:600; }
+  .modal-close { background:none; border:none; font-size:22px; cursor:pointer; color:var(--text-light); padding:4px; }
+  .modal-body { padding:24px; }
+  .form-group { margin-bottom:16px; }
+  .form-group label { display:block; font-size:12px; font-weight:600; color:var(--text-light); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.3px; }
+  .form-group input, .form-group select, .form-group textarea { width:100%; padding:10px 14px; border:1.5px solid var(--border); border-radius:8px; font-size:14px; font-family:inherit; transition:border 0.2s; background: var(--card); color: var(--text); }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline:none; border-color:var(--primary); }
+  .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .modal-footer { padding:16px 24px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:10px; }
+
+  /* Dental Chart */
+  .tooth-chart { display:flex; flex-direction:column; align-items:center; gap:20px; padding:20px; }
+  .tooth-row { display:flex; gap:4px; }
+  .tooth { width:36px; height:44px; border:2px solid var(--border); border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; cursor:pointer; transition:all 0.2s; background:var(--card); position:relative; }
+  .tooth:hover { border-color:var(--primary); transform:scale(1.1); z-index:1; }
+  .tooth.healthy { background:#d4edda; border-color:#28a745; }
+  .tooth.cavity { background:#fff3cd; border-color:#ffc107; }
+  .tooth.treated { background:var(--primary-light); border-color:var(--primary); }
+  .tooth.missing { background:#f8d7da; border-color:var(--danger); opacity:0.6; }
+  .tooth.selected { border-color:var(--primary); box-shadow:0 0 0 3px rgba(42,125,225,0.3); transform:scale(1.15); z-index:2; }
+  .tooth.readonly { cursor: default; }
+  .tooth.readonly:hover { transform: none; }
+
+  /* Search */
+  .search-box { position:relative; }
+  .search-box input { padding-left:36px; width:280px; background: var(--card); color: var(--text); }
+  .search-box::before { content:"🔍"; position:absolute; left:12px; top:50%; transform:translateY(-50%); font-size:14px; }
+
+  /* Tabs within sections */
+  .tab-bar { display:flex; gap:0; border-bottom:2px solid var(--border); margin-bottom:20px; }
+  .tab { padding:10px 20px; font-size:13px; font-weight:600; color:var(--text-light); cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-2px; transition:all 0.2s; }
+  .tab:hover { color:var(--text); }
+  .tab.active { color:var(--primary); border-bottom-color:var(--primary); }
+
+  /* Today's schedule */
+  .schedule-item { display:flex; align-items:center; gap:16px; padding:14px 0; border-bottom:1px solid var(--border); }
+  .schedule-item:last-child { border-bottom:none; }
+  .schedule-time { font-size:13px; font-weight:700; color:var(--primary); width:70px; flex-shrink:0; }
+  .schedule-info { flex:1; }
+  .schedule-info .patient-name { font-weight:600; font-size:14px; }
+  .schedule-info .procedure { font-size:12px; color:var(--text-light); margin-top:2px; }
+
+  .empty-state { text-align:center; padding:40px; color:var(--text-light); }
+  .empty-state .icon { font-size:48px; margin-bottom:12px; }
+
+  /* Health Log */
+  .health-entry { padding:14px; border:1px solid var(--border); border-radius:10px; margin-bottom:10px; background: var(--card); }
+  .health-entry .entry-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+  .health-entry .entry-date { font-size:12px; color:var(--text-light); }
+  .health-entry .entry-type { font-size:11px; font-weight:600; padding:2px 8px; border-radius:10px; }
+
+  /* Welcome message */
+  .welcome-message { background: linear-gradient(135deg, var(--patient-primary), #004d6d); color: white; padding: 24px; border-radius: var(--radius); margin-bottom: 20px; }
+  .welcome-message h2 { font-size: 24px; margin-bottom: 8px; }
+  .welcome-message p { font-size: 14px; opacity: 0.9; }
+
+  /* Dark Mode Toggle */
+  .dark-mode-toggle { background: none; border: none; font-size: 20px; cursor: pointer; padding: 6px; transition: transform 0.2s; }
+  .dark-mode-toggle:hover { transform: scale(1.1); }
+
+  /* Fun Streaks */
+  .streak-display { font-size: 18px; font-weight: 700; color: #ff6b6b; letter-spacing: 2px; }
+
+  /* Confetti Container */
+  .confetti-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999; }
+  .confetti { position: absolute; width: 10px; height: 10px; animation: fall 3s linear forwards; }
+  @keyframes fall {
+    to {
+      transform: translateY(100vh) rotate(720deg);
+      opacity: 0;
+    }
+  }
+
+  /* Staff Joke Box */
+  .joke-box { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 16px; border-radius: 8px; margin-top: 16px; font-style: italic; }
+
+  @media (max-width:900px) {
+    .stats-grid { grid-template-columns:repeat(2,1fr); }
+    .achievements-grid { grid-template-columns: repeat(2, 1fr); }
+    .sidebar { width:60px; }
+    .sidebar-header h1 span:last-child, .sidebar-header p, .nav-item span:not(.icon), .nav-item .badge, .sidebar-footer { display:none; }
+    .nav-item { justify-content:center; padding:12px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div class="login-container" id="loginContainer">
+  <div class="login-box">
+    <div class="login-header">
+      <div class="logo"><img src="http://www.hobsonsbaydental.com.au/wp-content/uploads/2017/10/Hobson-bay-dental.png" alt="Hobsons Bay Dental" onerror="this.outerHTML='🦷'"></div>
+      <h1>Hobsons Bay Dental</h1>
+      <p style="font-size:12px;color:var(--text-light);margin-top:4px;">Principal Dentist: Dr Daniel Andrews</p>
+      <p>Practice Management Portal</p>
+    </div>
+
+    <div class="login-tabs">
+      <div class="login-tab active" onclick="switchLoginTab('staff')">Staff Login</div>
+      <div class="login-tab" onclick="switchLoginTab('patient')">Patient Login</div>
+    </div>
+
+    <!-- Staff Login Form -->
+    <form class="login-form active" id="staffLoginForm" onsubmit="handleStaffLogin(event)">
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="staffEmail" placeholder="staff@dentist.com" required>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="staffPassword" placeholder="Enter password" required>
+      </div>
+      <button type="submit" class="btn-login">Sign In</button>
+      <div class="login-footer">Password: "admin" for all staff accounts</div>
+    </form>
+
+    <!-- Patient Login Form -->
+    <form class="login-form" id="patientLoginForm" onsubmit="handlePatientLogin(event)">
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="patientEmail" placeholder="your.email@example.com" required>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="patientPassword" placeholder="Enter password" required>
+      </div>
+      <button type="submit" class="btn-login">Sign In</button>
+      <div class="login-footer">Password: "patient" for all patient accounts</div>
+    </form>
+  </div>
+</div>
+
+<!-- STAFF APP -->
+<div class="app" id="staffApp">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <img src="http://www.hobsonsbaydental.com.au/wp-content/uploads/2017/10/Hobson-bay-dental.png" alt="HBD" style="height:36px;margin-bottom:6px;" onerror="this.outerHTML='<h1>🦷 HBD</h1>'">
+      <h1 onclick="makeToothBounce()" title="Click to bounce!"><span>🦷</span></h1>
+      <p>Hobsons Bay Dental</p>
+      <p style="font-size:10px;margin-top:2px;color:rgba(255,255,255,0.5);">Dr Daniel Andrews, Principal</p>
+    </div>
+    <div class="nav">
+      <div class="nav-item active" onclick="showPage('dashboard')"><span class="icon">📊</span> <span>Dashboard</span></div>
+      <div class="nav-item" onclick="showPage('appointments')"><span class="icon">📅</span> <span>Appointments</span> <span class="badge" id="apptBadge">0</span></div>
+      <div class="nav-item" onclick="showPage('patients')"><span class="icon">👥</span> <span>Patients</span></div>
+      <div class="nav-item" onclick="showPage('dental-chart')"><span class="icon">🦷</span> <span>Dental Chart</span></div>
+      <div class="nav-item" onclick="showPage('health-log')"><span class="icon">📋</span> <span>Health Log</span></div>
+      <div class="nav-item" onclick="showPage('treatments')"><span class="icon">💊</span> <span>Treatments</span></div>
+    </div>
+    <div class="sidebar-location"><strong>Williamstown</strong><br>72 Electra St, VIC 3016</div>
+    <div class="sidebar-location"><strong>Altona North</strong><br>173 Millers Rd, VIC 3025</div>
+    <div class="sidebar-footer">(03) 9391 5174<br>&copy; 2026 Hobsons Bay Dental</div>
+    <div class="sidebar-logout">
+      <button onclick="logout()">Log Out</button>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="topbar">
+      <h2 id="pageTitle">Dashboard</h2>
+      <div class="topbar-actions" id="topbarActions">
+        <button class="btn-icon" id="darkModeToggle" onclick="toggleDarkMode()" title="Toggle dark mode">🌙</button>
+      </div>
+    </div>
+    <div class="content" id="pageContent"></div>
+  </div>
+</div>
+
+<!-- PATIENT APP -->
+<div class="app" id="patientApp">
+  <!-- Sidebar -->
+  <div class="sidebar patient">
+    <div class="sidebar-header">
+      <img src="http://www.hobsonsbaydental.com.au/wp-content/uploads/2017/10/Hobson-bay-dental.png" alt="HBD" style="height:36px;margin-bottom:6px;" onerror="this.outerHTML='<h1>🦷 HBD</h1>'">
+      <h1 onclick="makeToothBounce()" title="Click to bounce!"><span>🦷</span></h1>
+      <p>Your Dental Portal</p>
+    </div>
+    <div class="nav">
+      <div class="nav-item active" onclick="showPatientPage('dashboard')"><span class="icon">📊</span> <span>My Dashboard</span></div>
+      <div class="nav-item" onclick="showPatientPage('appointments')"><span class="icon">📅</span> <span>My Appointments</span></div>
+      <div class="nav-item" onclick="showPatientPage('dental-chart')"><span class="icon">🦷</span> <span>My Dental Chart</span></div>
+      <div class="nav-item" onclick="showPatientPage('health-history')"><span class="icon">📋</span> <span>My Health History</span></div>
+      <div class="nav-item" onclick="showPatientPage('treatments')"><span class="icon">💊</span> <span>My Treatments</span></div>
+    </div>
+    <div class="sidebar-location"><strong>Williamstown</strong><br>72 Electra St, VIC 3016</div>
+    <div class="sidebar-location"><strong>Altona North</strong><br>173 Millers Rd, VIC 3025</div>
+    <div class="sidebar-footer">(03) 9391 5174<br>&copy; 2026 Hobsons Bay Dental</div>
+    <div class="sidebar-logout">
+      <button onclick="logout()">Log Out</button>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="topbar">
+      <h2 id="patientPageTitle">My Dashboard</h2>
+      <div class="topbar-actions" id="patientTopbarActions">
+        <button class="btn-icon" id="patientDarkModeToggle" onclick="toggleDarkMode()" title="Toggle dark mode">🌙</button>
+      </div>
+    </div>
+    <div class="content" id="patientPageContent"></div>
+  </div>
+</div>
+
+<!-- Add Patient Modal -->
+<div class="modal-overlay" id="patientModal">
+  <div class="modal">
+    <div class="modal-header"><h3 id="patientModalTitle">Add New Patient</h3><button class="modal-close" onclick="closeModal('patientModal')">&times;</button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label>First Name</label><input type="text" id="pFirstName"></div>
+        <div class="form-group"><label>Last Name</label><input type="text" id="pLastName"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Date of Birth</label><input type="date" id="pDOB"></div>
+        <div class="form-group"><label>Phone</label><input type="tel" id="pPhone"></div>
+      </div>
+      <div class="form-group"><label>Email</label><input type="email" id="pEmail"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Insurance Provider</label><input type="text" id="pInsurance"></div>
+        <div class="form-group"><label>Policy Number</label><input type="text" id="pPolicy"></div>
+      </div>
+      <div class="form-group"><label>Notes</label><textarea id="pNotes" rows="2"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('patientModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="savePatient()">Save Patient</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Appointment Modal -->
+<div class="modal-overlay" id="apptModal">
+  <div class="modal">
+    <div class="modal-header"><h3>New Appointment</h3><button class="modal-close" onclick="closeModal('apptModal')">&times;</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label>Patient</label><select id="aPatient"></select></div>
+      <div class="form-group"><label>Location</label>
+        <select id="aLocation"><option>Williamstown — 72 Electra St</option><option>Altona North — 173 Millers Rd</option></select>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Date</label><input type="date" id="aDate"></div>
+        <div class="form-group"><label>Time</label><input type="time" id="aTime" value="09:00"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Procedure</label>
+          <select id="aProcedure">
+            <option>Cleaning</option><option>Exam & X-Ray</option><option>3D Scan</option><option>Filling</option><option>Crown</option>
+            <option>Veneers</option><option>Root Canal</option><option>Extraction</option><option>Whitening</option>
+            <option>Invisalign</option><option>Implant Consult</option><option>Implant</option>
+            <option>Dentures</option><option>Mouthguard</option><option>Sleep Apnea Device</option>
+            <option>Botox/Fillers</option><option>Emergency</option><option>Other</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Duration (min)</label>
+          <select id="aDuration"><option>15</option><option>30</option><option selected>45</option><option>60</option><option>90</option><option>120</option></select>
+        </div>
+      </div>
+      <div class="form-group"><label>Status</label>
+        <select id="aStatus"><option>Confirmed</option><option>Pending</option></select>
+      </div>
+      <div class="form-group"><label>Notes</label><textarea id="aNotes" rows="2"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('apptModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveAppointment()">Save Appointment</button>
+    </div>
+  </div>
+</div>
+
+<!-- Health Log Modal -->
+<div class="modal-overlay" id="healthModal">
+  <div class="modal">
+    <div class="modal-header"><h3>Add Health Entry</h3><button class="modal-close" onclick="closeModal('healthModal')">&times;</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label>Patient</label><select id="hPatient"></select></div>
+      <div class="form-row">
+        <div class="form-group"><label>Date</label><input type="date" id="hDate"></div>
+        <div class="form-group"><label>Type</label>
+          <select id="hType"><option>Exam</option><option>Treatment</option><option>Follow-up</option><option>Symptom</option><option>X-Ray</option><option>Note</option></select>
+        </div>
+      </div>
+      <div class="form-group"><label>Tooth #(s)</label><input type="text" id="hTooth" placeholder="e.g. 14, 15"></div>
+      <div class="form-group"><label>Description</label><textarea id="hDesc" rows="3"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('healthModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveHealthEntry()">Save Entry</button>
+    </div>
+  </div>
+</div>
+
+<!-- Treatment Modal -->
+<div class="modal-overlay" id="treatmentModal">
+  <div class="modal">
+    <div class="modal-header"><h3>Add Treatment Plan</h3><button class="modal-close" onclick="closeModal('treatmentModal')">&times;</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label>Patient</label><select id="tPatient"></select></div>
+      <div class="form-group"><label>Treatment</label><input type="text" id="tName" placeholder="e.g. Crown on #19"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Est. Cost ($)</label><input type="number" id="tCost" value="0"></div>
+        <div class="form-group"><label>Status</label>
+          <select id="tStatus"><option>Planned</option><option>In Progress</option><option>Completed</option></select>
+        </div>
+      </div>
+      <div class="form-group"><label>Notes</label><textarea id="tNotes" rows="2"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('treatmentModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTreatment()">Save Treatment</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confetti Container -->
+<div class="confetti-container" id="confettiContainer"></div>
+
+<script>
+// ========== DATA STORE ==========
+let data = {
+  patients: [
+    { id:1, firstName:"Sarah", lastName:"Johnson", dob:"1985-03-12", phone:"(555) 234-5678", email:"sarah.j@email.com", insurance:"Delta Dental", policy:"DD-88421", notes:"Sensitive to cold on lower left", created:"2026-01-15" },
+    { id:2, firstName:"Michael", lastName:"Chen", dob:"1992-07-24", phone:"(555) 876-5432", email:"m.chen@email.com", insurance:"Cigna", policy:"CG-55129", notes:"Orthodontic history", created:"2026-02-01" },
+    { id:3, firstName:"Emma", lastName:"Williams", dob:"1978-11-05", phone:"(555) 345-6789", email:"emma.w@email.com", insurance:"Aetna", policy:"AE-77305", notes:"Periodontal monitoring", created:"2026-02-20" },
+    { id:4, firstName:"James", lastName:"Rodriguez", dob:"2001-05-18", phone:"(555) 567-8901", email:"j.rod@email.com", insurance:"MetLife", policy:"ML-33210", notes:"Wisdom teeth consult needed", created:"2026-03-05" },
+    { id:5, firstName:"Linda", lastName:"Park", dob:"1968-09-30", phone:"(555) 678-9012", email:"l.park@email.com", insurance:"Delta Dental", policy:"DD-91037", notes:"Implant candidate #30", created:"2026-03-10" },
+  ],
+  appointments: [
+    { id:1, patientId:1, date:"2026-04-03", time:"09:00", procedure:"Cleaning", duration:45, status:"Confirmed", notes:"" },
+    { id:2, patientId:2, date:"2026-04-03", time:"10:00", procedure:"Filling", duration:60, status:"Confirmed", notes:"Tooth #14 composite" },
+    { id:3, patientId:3, date:"2026-04-03", time:"11:30", procedure:"Exam & X-Ray", duration:30, status:"Pending", notes:"6-month recall" },
+    { id:4, patientId:4, date:"2026-04-04", time:"09:00", procedure:"Extraction", duration:45, status:"Confirmed", notes:"Wisdom tooth #32" },
+    { id:5, patientId:5, date:"2026-04-04", time:"14:00", procedure:"Implant Consult", duration:60, status:"Pending", notes:"" },
+    { id:6, patientId:1, date:"2026-04-07", time:"10:30", procedure:"Crown", duration:90, status:"Confirmed", notes:"Tooth #19 - PFM" },
+  ],
+  healthLog: [
+    { id:1, patientId:1, date:"2026-03-15", type:"Exam", tooth:"", desc:"Full exam. Cavity detected on #19. Recommend crown." },
+    { id:2, patientId:2, date:"2026-03-20", type:"X-Ray", tooth:"14", desc:"Bitewing X-ray shows decay on mesial surface of #14." },
+    { id:3, patientId:3, date:"2026-03-22", type:"Follow-up", tooth:"", desc:"Periodontal pocket depths stable. Continue monitoring." },
+    { id:4, patientId:5, date:"2026-03-28", type:"Exam", tooth:"30", desc:"Missing #30. Bone density adequate for implant." },
+  ],
+  treatments: [
+    { id:1, patientId:1, name:"Crown on #19", cost:1200, status:"Planned", notes:"PFM crown, patient approved" },
+    { id:2, patientId:2, name:"Composite filling #14", cost:250, status:"In Progress", notes:"Scheduled for 4/3" },
+    { id:3, patientId:5, name:"Implant #30", cost:3500, status:"Planned", notes:"Pending consult" },
+    { id:4, patientId:4, name:"Extract wisdom #32", cost:350, status:"Planned", notes:"Impacted, may need surgical" },
+  ],
+  dentalChart: {},
+  nextId: { patients:6, appointments:7, healthLog:5, treatments:5 }
+};
+
+// Initialize dental chart for all patients
+data.dentalChart[1] = { 19:'cavity', 3:'treated', 14:'healthy' };
+data.dentalChart[2] = { 14:'cavity' };
+data.dentalChart[5] = { 30:'missing' };
+
+let currentPage = 'dashboard';
+let currentPatientPage = 'dashboard';
+let selectedChartPatient = 1;
+let selectedTooth = null;
+let editingPatientId = null;
+let currentUser = null;
+let isStaffUser = false;
+let punIndex = 0;
+let darkMode = localStorage.getItem('darkMode') === 'true';
+let konamiCode = [];
+let toothSpinCount = 0;
+
+const dentalpuns = [
+  "You're doing a fang-tastic job with your dental health! 🦷",
+  "Brace yourself... your next appointment is coming! 😁",
+  "We're not pulling your leg, but we might pull a tooth! 😄",
+  "Time to get to the root of the problem! 🔍",
+  "Keep calm and floss on. 🧵",
+  "You can't handle the tooth! 💪",
+  "That's the tooth, the whole tooth, and nothing but the tooth. ⚖️",
+  "Life is short. Smile while you still have teeth! 😊",
+  "Be true to your teeth or they'll be false to you. 👍",
+  "Dentists always get to the root of the problem. 🌱",
+  "Our practice really drills it in! ⚙️",
+  "We give the best filling advice. 💭",
+  "Don't be so sensitive... unless it's your teeth. 😬",
+  "The Hobsons Bay Dental Way: Making Melbourne smile since the '80s! 🌟",
+];
+
+const staffJokes = [
+  "Why did the dentist go to the baseball game? Because he wanted to pull a tooth! ⚾",
+  "What did the dentist say to the tooth? I have filling you're going to like me! 😄",
+  "Do you know the difference between a dentist and a sadist? A sadist uses a drill with music! 🎵",
+  "Why do dentists love their jobs? Because it's in-root-ing! 🌱",
+  "What do you call a dentist in the morning? Tooth-tired! 😴",
+  "Why did the tooth go to school? To get a little brighter! 🧠",
+];
+
+const motivationalQuotes = [
+  "A smile is the universal language of kindness. - William Arthur Ward",
+  "Your smile is your best accessory. Make it count!",
+  "Healthy teeth are the foundation of a beautiful smile.",
+  "Taking care of your teeth is taking care of yourself.",
+  "Smile often, floss daily, see your dentist twice yearly!",
+  "Your future self will thank you for brushing today!",
+];
+
+// ========== DARK MODE ==========
+function toggleDarkMode() {
+  darkMode = !darkMode;
+  localStorage.setItem('darkMode', darkMode);
+  document.body.classList.toggle('dark-mode');
+  updateDarkModeButtons();
+}
+
+function updateDarkModeButtons() {
+  const staffBtn = document.getElementById('darkModeToggle');
+  const patientBtn = document.getElementById('patientDarkModeToggle');
+  if (staffBtn) staffBtn.textContent = darkMode ? '☀️' : '🌙';
+  if (patientBtn) patientBtn.textContent = darkMode ? '☀️' : '🌙';
+}
+
+// ========== PUNS & ANIMATIONS ==========
+function getPun() {
+  const pun = dentalpuns[punIndex % dentalpuns.length];
+  punIndex++;
+  return pun;
+}
+
+function rotateStaffPun() {
+  const content = document.getElementById('pageContent');
+  if (!content || !content.querySelector('.pun-banner')) return;
+  const banner = content.querySelector('.pun-banner');
+  const pun = getPun();
+  banner.innerHTML = `<span>🦷</span> <span>${pun}</span>`;
+}
+
+function rotatePatiendPun() {
+  const content = document.getElementById('patientPageContent');
+  if (!content || !content.querySelector('.pun-banner')) return;
+  const banner = content.querySelector('.pun-banner');
+  const pun = getPun();
+  banner.innerHTML = `<span>🦷</span> <span>${pun}</span>`;
+}
+
+// ========== CONFETTI ==========
+function createConfetti() {
+  const container = document.getElementById('confettiContainer');
+  container.innerHTML = '';
+  const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#6c5ce7', '#a29bfe', '#00b894'];
+
+  for (let i = 0; i < 50; i++) {
+    const confetti = document.createElement('div');
+    confetti.className = 'confetti';
+
+    const isEmoji = Math.random() > 0.6;
+    if (isEmoji) {
+      confetti.textContent = '🦷';
+      confetti.style.fontSize = '20px';
+    } else {
+      confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+    }
+
+    confetti.style.left = Math.random() * 100 + '%';
+    confetti.style.delay = Math.random() * 0.5 + 's';
+    confetti.style.animationDuration = (2 + Math.random() * 1) + 's';
+
+    container.appendChild(confetti);
+  }
+
+  setTimeout(() => container.innerHTML = '', 4000);
+}
+
+// ========== EASTER EGGS ==========
+const konamiSequence = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+
+function initKonamiCode() {
+  document.addEventListener('keydown', (e) => {
+    konamiCode.push(e.key === 'b' || e.key === 'B' ? 'b' : e.key === 'a' || e.key === 'A' ? 'a' : e.key);
+    konamiCode = konamiCode.slice(-10);
+
+    if (konamiCode.join(',').includes(konamiSequence.join(','))) {
+      triggerKonamiEasterEgg();
+      konamiCode = [];
+    }
+  });
+}
+
+function triggerKonamiEasterEgg() {
+  createConfetti();
+  createConfetti();
+  createConfetti();
+  alert('🎉 You found the secret! Free teeth whitening! (Just kidding... or are we? 😏)');
+}
+
+function makeToothBounce() {
+  const tooth = event.target;
+  toothSpinCount++;
+  tooth.style.animation = 'none';
+  setTimeout(() => {
+    tooth.style.animation = 'spin 0.6s ease-in-out';
+  }, 10);
+
+  const facts = [
+    "Your teeth are the only part of your body that can't heal themselves! 🦷",
+    "Enamel is the hardest substance in your body! 💪",
+    "You have more bacteria in your mouth than people on Earth! 🦠",
+    "Humans spend 38.5 days brushing teeth in their lifetime! 🪥",
+    "Your tooth is the only living thing your body can't replace! 🌟",
+    "Teeth can sense temperature changes in 0.01 seconds! 🌡️",
+    "A tooth can be transplanted to another socket! 🔄",
+  ];
+
+  const fact = facts[toothSpinCount % facts.length];
+  console.log('Tooth Fact: ' + fact);
+}
+
+// Add spin animation
+const style = document.createElement('style');
+style.textContent = `
+  @keyframes spin {
+    0% { transform: rotateY(0deg); }
+    100% { transform: rotateY(360deg); }
+  }
+`;
+document.head.appendChild(style);
+
+// ========== ACHIEVEMENTS ==========
+function calculateAchievements(patientId) {
+  const patient = data.patients.find(p => p.id === patientId);
+  const appts = data.appointments.filter(a => a.patientId === patientId);
+  const completedAppts = appts.filter(a => a.status === 'Completed').length;
+  const treatments = data.treatments.filter(t => t.patientId === patientId);
+  const completedTreatments = treatments.filter(t => t.status === 'Completed').length;
+  const grade = calculateDentalHealth(patientId);
+  const chart = data.dentalChart[patientId] || {};
+  const hasCrown = Object.values(chart).includes('treated') || treatments.some(t => t.name.includes('Crown'));
+  const nocavities = !Object.values(chart).includes('cavity');
+
+  const achievements = [
+    { icon: '🦷', name: 'Tooth Fairy VIP', desc: '5+ appointments', earned: appts.length >= 5 },
+    { icon: '🧵', name: 'Floss Boss', desc: '2+ treatments', earned: completedTreatments >= 2 },
+    { icon: '💎', name: 'Diamond Smile', desc: 'A or A+ grade', earned: grade.letter === 'A' || grade.letter === 'A+' },
+    { icon: '🏆', name: 'Crown Royalty', desc: 'Crown procedure', earned: hasCrown },
+    { icon: '🦈', name: 'Jaws of Steel', desc: 'No cavities', earned: nocavities },
+    { icon: '🌟', name: 'Rising Star', desc: '1st appt done', earned: completedAppts >= 1 },
+    { icon: '📅', name: 'Regular Visitor', desc: '2+ appts/year', earned: appts.length >= 2 },
+    { icon: '🎯', name: 'Perfect Attendance', desc: 'Never cancelled', earned: appts.filter(a => a.status !== 'Cancelled').length === appts.length && appts.length > 0 },
+  ];
+
+  return achievements;
+}
+
+function renderAchievementBadges(patientId) {
+  const achievements = calculateAchievements(patientId);
+  return `
+    <div class="achievements-section">
+      <h3 style="margin-bottom: 16px; font-size: 16px; font-weight: 600;">Your Achievements 🏅</h3>
+      <div class="achievements-grid">
+        ${achievements.map(a => `
+          <div class="badge-card ${a.earned ? 'earned' : 'locked'}">
+            <div class="badge-icon">${a.earned ? a.icon : '🔒'}</div>
+            <div class="badge-name">${a.name}</div>
+            <div class="badge-desc">${a.desc}</div>
+            ${!a.earned ? '<div class="badge-lock">Locked</div>' : ''}
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+// ========== FUN STATS ==========
+function calculateSmileStreak(patientId) {
+  const appts = data.appointments.filter(a => a.patientId === patientId).sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time));
+  let streak = 0;
+  for (const appt of appts) {
+    if (appt.status === 'Confirmed' || appt.status === 'Pending') {
+      streak++;
+    } else {
+      break;
+    }
+  }
+  return streak;
+}
+
+function getTeethSaved(patientId) {
+  const chart = data.dentalChart[patientId] || {};
+  return Object.values(chart).filter(status => status === 'treated').length;
+}
+
+function getDaysUntilNextAppointment(patientId) {
+  const appts = data.appointments.filter(a => a.patientId === patientId && a.date >= new Date().toISOString().split('T')[0]).sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+  if (!appts.length) return null;
+  const nextDate = new Date(appts[0].date);
+  const today = new Date();
+  const days = Math.ceil((nextDate - today) / (1000 * 60 * 60 * 24));
+  return Math.max(0, days);
+}
+
+// ========== LOGIN ==========
+function switchLoginTab(tab) {
+  document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.login-form').forEach(f => f.classList.remove('active'));
+  event.target.classList.add('active');
+  if (tab === 'staff') {
+    document.getElementById('staffLoginForm').classList.add('active');
+  } else {
+    document.getElementById('patientLoginForm').classList.add('active');
+  }
+}
+
+function handleStaffLogin(e) {
+  e.preventDefault();
+  const email = document.getElementById('staffEmail').value.trim();
+  const password = document.getElementById('staffPassword').value;
+  if (!email || password !== 'admin') {
+    alert('Invalid staff credentials');
+    return;
+  }
+  currentUser = { email, role: 'staff' };
+  isStaffUser = true;
+  document.getElementById('loginContainer').classList.remove('show');
+  document.getElementById('staffApp').classList.add('show');
+  if (darkMode) document.body.classList.add('dark-mode');
+  updateDarkModeButtons();
+  render();
+}
+
+function handlePatientLogin(e) {
+  e.preventDefault();
+  const email = document.getElementById('patientEmail').value.trim();
+  const password = document.getElementById('patientPassword').value;
+  if (!email || password !== 'patient') {
+    alert('Invalid patient credentials');
+    return;
+  }
+  const patient = data.patients.find(p => p.email === email);
+  if (!patient) {
+    alert('Patient account not found');
+    return;
+  }
+  currentUser = { email, patientId: patient.id, role: 'patient' };
+  isStaffUser = false;
+  document.getElementById('loginContainer').classList.remove('show');
+  document.getElementById('patientApp').classList.add('show');
+  if (darkMode) document.body.classList.add('dark-mode');
+  updateDarkModeButtons();
+  renderPatientDashboard();
+  triggerA_PlusConfetti();
+}
+
+function triggerA_PlusConfetti() {
+  const grade = calculateDentalHealth(currentUser.patientId);
+  if (grade.letter === 'A+') {
+    setTimeout(() => createConfetti(), 500);
+  }
+}
+
+function logout() {
+  currentUser = null;
+  isStaffUser = false;
+  document.getElementById('staffApp').classList.remove('show');
+  document.getElementById('patientApp').classList.remove('show');
+  document.getElementById('loginContainer').classList.add('show');
+  document.getElementById('staffEmail').value = '';
+  document.getElementById('staffPassword').value = '';
+  document.getElementById('patientEmail').value = '';
+  document.getElementById('patientPassword').value = '';
+  document.body.classList.remove('dark-mode');
+}
+
+// ========== STAFF NAVIGATION ==========
+function showPage(page) {
+  currentPage = page;
+  document.querySelectorAll('#staffApp .nav-item').forEach((el,i) => {
+    const pages = ['dashboard','appointments','patients','dental-chart','health-log','treatments'];
+    el.classList.toggle('active', pages[i] === page);
+  });
+  render();
+}
+
+function render() {
+  const titles = { dashboard:'Dashboard', appointments:'Appointments', patients:'Patients', 'dental-chart':'Dental Chart', 'health-log':'Health Log', treatments:'Treatments' };
+  document.getElementById('pageTitle').textContent = titles[currentPage];
+  updateBadge();
+
+  const content = document.getElementById('pageContent');
+  const actions = document.getElementById('topbarActions');
+
+  switch(currentPage) {
+    case 'dashboard': renderDashboard(content, actions); break;
+    case 'appointments': renderAppointments(content, actions); break;
+    case 'patients': renderPatients(content, actions); break;
+    case 'dental-chart': renderDentalChart(content, actions); break;
+    case 'health-log': renderHealthLog(content, actions); break;
+    case 'treatments': renderTreatments(content, actions); break;
+  }
+
+  setTimeout(rotateStaffPun, 100);
+}
+
+function updateBadge() {
+  const today = new Date().toISOString().split('T')[0];
+  const todayAppts = data.appointments.filter(a => a.date === today && a.status !== 'Cancelled');
+  document.getElementById('apptBadge').textContent = todayAppts.length;
+}
+
+// ========== STAFF DASHBOARD ==========
+function renderDashboard(el, actions) {
+  actions.innerHTML = '<button class="btn-icon" id="darkModeToggle" onclick="toggleDarkMode()" title="Toggle dark mode">' + (darkMode ? '☀️' : '🌙') + '</button>';
+  const today = new Date().toISOString().split('T')[0];
+  const todayAppts = data.appointments.filter(a => a.date === today && a.status !== 'Cancelled').sort((a,b) => a.time.localeCompare(b.time));
+  const pendingTreatments = data.treatments.filter(t => t.status !== 'Completed');
+  const totalRevenue = data.treatments.reduce((s,t) => s + t.cost, 0);
+
+  el.innerHTML = `
+    <div class="pun-banner"><span>🦷</span> <span>${getPun()}</span></div>
+
+    <div class="stats-grid">
+      <div class="stat-card stat-blue"><div class="stat-icon">👥</div><div class="stat-value">${data.patients.length}</div><div class="stat-label">Total Patients</div></div>
+      <div class="stat-card stat-green"><div class="stat-icon">📅</div><div class="stat-value">${todayAppts.length}</div><div class="stat-label">Today's Appointments</div></div>
+      <div class="stat-card stat-yellow"><div class="stat-icon">💊</div><div class="stat-value">${pendingTreatments.length}</div><div class="stat-label">Pending Treatments</div></div>
+      <div class="stat-card stat-red"><div class="stat-icon">💰</div><div class="stat-value">$${totalRevenue.toLocaleString()}</div><div class="stat-label">Treatment Value</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+      <div class="card">
+        <div class="card-header"><h3>Today's Schedule — ${new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}</h3></div>
+        <div class="card-body">
+          ${todayAppts.length ? todayAppts.map(a => {
+            const p = data.patients.find(p => p.id === a.patientId);
+            return `<div class="schedule-item">
+              <div class="schedule-time">${formatTime(a.time)}</div>
+              <div class="schedule-info">
+                <div class="patient-name">${p ? p.firstName+' '+p.lastName : 'Unknown'}</div>
+                <div class="procedure">${a.procedure} &middot; ${a.duration} min</div>
+              </div>
+              <span class="status-badge status-${a.status.toLowerCase()}">
+                ${a.status}
+                <span class="status-tooltip">${getStatusMessage(a.status)}</span>
+              </span>
+            </div>`;
+          }).join('') : '<div class="empty-state"><div class="icon">📅</div><p>No appointments today</p></div>'}
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>Upcoming Treatments</h3></div>
+        <div class="card-body">
+          ${pendingTreatments.length ? pendingTreatments.map(t => {
+            const p = data.patients.find(p => p.id === t.patientId);
+            return `<div class="schedule-item">
+              <div style="width:70px;flex-shrink:0;"><span class="status-badge status-${t.status==='Planned'?'pending':'confirmed'}">${t.status}</span></div>
+              <div class="schedule-info">
+                <div class="patient-name">${t.name}</div>
+                <div class="procedure">${p ? p.firstName+' '+p.lastName : 'Unknown'} &middot; $${t.cost}</div>
+              </div>
+            </div>`;
+          }).join('') : '<div class="empty-state"><div class="icon">💊</div><p>No pending treatments</p></div>'}
+        </div>
+      </div>
+    </div>
+    <div class="joke-box">
+      <strong>Thought of the Day:</strong><br>
+      ${staffJokes[Math.floor(Math.random() * staffJokes.length)]}
+    </div>
+  `;
+
+  setInterval(rotateStaffPun, 8000);
+}
+
+// ========== STAFF APPOINTMENTS ==========
+function renderAppointments(el, actions) {
+  actions.innerHTML = `<button class="btn-icon" id="darkModeToggle" onclick="toggleDarkMode()" title="Toggle dark mode">${darkMode ? '☀️' : '🌙'}</button><button class="btn btn-primary" onclick="openApptModal()">+ New Appointment</button>`;
+  const sorted = [...data.appointments].sort((a,b) => (a.date+a.time).localeCompare(b.date+b.time));
+
+  el.innerHTML = `
+    <div class="card">
+      <div class="card-body" style="padding:0;">
+        <div class="table-wrap"><table>
+          <thead><tr><th>Date</th><th>Time</th><th>Patient</th><th>Procedure</th><th>Duration</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody>${sorted.map(a => {
+            const p = data.patients.find(p => p.id === a.patientId);
+            return `<tr>
+              <td>${formatDate(a.date)}</td>
+              <td>${formatTime(a.time)}</td>
+              <td><strong>${p ? p.firstName+' '+p.lastName : 'Unknown'}</strong></td>
+              <td>${a.procedure}</td>
+              <td>${a.duration} min</td>
+              <td><span class="status-badge status-${a.status.toLowerCase()}">
+                ${a.status}
+                <span class="status-tooltip">${getStatusMessage(a.status)}</span>
+              </span></td>
+              <td>
+                ${a.status!=='Completed'?`<button class="btn btn-sm btn-accent" onclick="completeAppt(${a.id})">Complete</button>`:''}
+                ${a.status!=='Cancelled'?`<button class="btn btn-sm btn-outline" onclick="cancelAppt(${a.id})">Cancel</button>`:''}
+              </td>
+            </tr>`;
+          }).join('')}</tbody>
+        </table></div>
+      </div>
+    </div>
+  `;
+}
+
+// ========== STAFF PATIENTS ==========
+function renderPatients(el, actions) {
+  actions.innerHTML = `
+    <button class="btn-icon" id="darkModeToggle" onclick="toggleDarkMode()" title="Toggle dark mode">${darkMode ? '☀️' : '🌙'}</button>
+    <div class="search-box"><input type="text" placeholder="Search patients..." oninput="filterPatients(this.value)"></div>
+    <button class="btn btn-primary" onclick="openPatientModal()">+ Add Patient</button>
+  `;
+  el.innerHTML = `
+    <div class="card">
+      <div class="card-body" style="padding:0;">
+        <div class="table-wrap"><table>
+          <thead><tr><th>Name</th><th>DOB</th><th>Phone</th><th>Insurance</th><th>Notes</th><th>Actions</th></tr></thead>
+          <tbody id="patientTableBody">${renderPatientRows(data.patients)}</tbody>
+        </table></div>
+      </div>
+    </div>
+  `;
+}
+
+function renderPatientRows(patients) {
+  return patients.map(p => `<tr>
+    <td><strong>${p.firstName} ${p.lastName}</strong><br><span style="font-size:11px;color:var(--text-light)">${p.email}</span></td>
+    <td>${formatDate(p.dob)}</td>
+    <td>${p.phone}</td>
+    <td>${p.insurance}<br><span style="font-size:11px;color:var(--text-light)">${p.policy}</span></td>
+    <td style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.notes}</td>
+    <td>
+      <button class="btn btn-sm btn-outline" onclick="editPatient(${p.id})">Edit</button>
+      <button class="btn btn-sm btn-outline" onclick="viewPatientChart(${p.id})">Chart</button>
+    </td>
+  </tr>`).join('');
+}
+
+function filterPatients(q) {
+  q = q.toLowerCase();
+  const filtered = data.patients.filter(p => (p.firstName+' '+p.lastName+' '+p.email+' '+p.insurance).toLowerCase().includes(q));
+  document.getElementById('patientTableBody').innerHTML = renderPatientRows(filtered);
+}
+
+// ========== STAFF DENTAL CHART ==========
+function renderDentalChart(el, actions) {
+  const patientOpts = data.patients.map(p => `<option value="${p.id}" ${p.id===selectedChartPatient?'selected':''}>${p.firstName} ${p.lastName}</option>`).join('');
+  actions.innerHTML = `<button class="btn-icon" id="darkModeToggle" onclick="toggleDarkMode()" title="Toggle dark mode">${darkMode ? '☀️' : '🌙'}</button><select onchange="selectedChartPatient=+this.value;selectedTooth=null;render();" style="padding:8px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:var(--card);color:var(--text);">${patientOpts}</select>`;
+
+  const chart = data.dentalChart[selectedChartPatient] || {};
+  const upperTeeth = [18,17,16,15,14,13,12,11,21,22,23,24,25,26,27,28];
+  const lowerTeeth = [48,47,46,45,44,43,42,41,31,32,33,34,35,36,37,38];
+
+  function toothHTML(nums) {
+    return nums.map(n => {
+      const status = chart[n] || '';
+      const sel = selectedTooth === n ? ' selected' : '';
+      return `<div class="tooth ${status}${sel}" onclick="selectTooth(${n})" title="Tooth #${n}">${n}</div>`;
+    }).join('');
+  }
+
+  const toothInfo = selectedTooth ? `
+    <div class="card" style="margin-top:20px;max-width:400px;">
+      <div class="card-header"><h3>Tooth #${selectedTooth}</h3></div>
+      <div class="card-body">
+        <div class="form-group"><label>Status</label>
+          <select onchange="setToothStatus(${selectedTooth},this.value)" id="toothStatusSelect">
+            <option value="" ${!chart[selectedTooth]?'selected':''}>Normal</option>
+            <option value="healthy" ${chart[selectedTooth]==='healthy'?'selected':''}>Healthy (checked)</option>
+            <option value="cavity" ${chart[selectedTooth]==='cavity'?'selected':''}>Cavity/Decay</option>
+            <option value="treated" ${chart[selectedTooth]==='treated'?'selected':''}>Treated</option>
+            <option value="missing" ${chart[selectedTooth]==='missing'?'selected':''}>Missing</option>
+          </select>
+        </div>
+      </div>
+    </div>` : '<p style="margin-top:16px;color:var(--text-light);font-size:13px;">Click a tooth to view or update its status.</p>';
+
+  el.innerHTML = `
+    <div class="card">
+      <div class="card-header"><h3>Dental Chart — ${data.patients.find(p=>p.id===selectedChartPatient)?.firstName} ${data.patients.find(p=>p.id===selectedChartPatient)?.lastName}</h3></div>
+      <div class="card-body">
+        <div class="tooth-chart">
+          <div style="font-size:12px;font-weight:600;color:var(--text-light);">UPPER</div>
+          <div class="tooth-row">${toothHTML(upperTeeth)}</div>
+          <div style="width:80%;height:1px;background:var(--border);"></div>
+          <div class="tooth-row">${toothHTML(lowerTeeth)}</div>
+          <div style="font-size:12px;font-weight:600;color:var(--text-light);">LOWER</div>
+        </div>
+        <div style="display:flex;gap:16px;justify-content:center;margin-top:12px;font-size:11px;">
+          <span><span class="tooth healthy" style="display:inline-block;width:16px;height:16px;font-size:0;vertical-align:middle;"></span> Healthy</span>
+          <span><span class="tooth cavity" style="display:inline-block;width:16px;height:16px;font-size:0;vertical-align:middle;"></span> Cavity</span>
+          <span><span class="tooth treated" style="display:inline-block;width:16px;height:16px;font-size:0;vertical-align:middle;"></span> Treated</span>
+          <span><span class="tooth missing" style="display:inline-block;width:16px;height:16px;font-size:0;vertical-align:middle;"></span> Missing</span>
+        </div>
+        ${toothInfo}
+      </div>
+    </div>
+  `;
+}
+
+function selectTooth(n) { selectedTooth = n; render(); }
+function setToothStatus(n, status) {
+  if (!data.dentalChart[selectedChartPatient]) data.dentalChart[selectedChartPatient] = {};
+  if (status) data.dentalChart[selectedChartPatient][n] = status;
+  else delete data.dentalChart[selectedChartPatient][n];
+  render();
+}
+
+// ========== STAFF HEALTH LOG ==========
+function renderHealthLog(el, actions) {
+  actions.innerHTML = `<button class="btn-icon" id="darkModeToggle" onclick="toggleDarkMode()" title="Toggle dark mode">${darkMode ? '☀️' : '🌙'}</button><button class="btn btn-primary" onclick="openHealthModal()">+ Add Entry</button>`;
+  const sorted = [...data.healthLog].sort((a,b) => b.date.localeCompare(a.date));
+  const typeColors = { Exam:'#2a7de1', Treatment:'#00c9a7', 'Follow-up':'#f0ad4e', Symptom:'#e74c3c', 'X-Ray':'#8e44ad', Note:'#7f8c9b' };
+
+  el.innerHTML = `
+    <div class="card"><div class="card-body">
+      ${sorted.length ? sorted.map(h => {
+        const p = data.patients.find(p => p.id === h.patientId);
+        return `<div class="health-entry">
+          <div class="entry-header">
+            <div><strong>${p ? p.firstName+' '+p.lastName : 'Unknown'}</strong>${h.tooth ? ' &middot; Tooth #'+h.tooth : ''}</div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span class="entry-type" style="background:${typeColors[h.type]||'#ccc'}20;color:${typeColors[h.type]||'#666'}">${h.type}</span>
+              <span class="entry-date">${formatDate(h.date)}</span>
+            </div>
+          </div>
+          <p style="font-size:13px;color:var(--text);margin-top:4px;">${h.desc}</p>
+        </div>`;
+      }).join('') : '<div class="empty-state"><div class="icon">📋</div><p>No health log entries yet</p></div>'}
+    </div></div>
+  `;
+}
+
+// ========== STAFF TREATMENTS ==========
+function renderTreatments(el, actions) {
+  actions.innerHTML = `<button class="btn-icon" id="darkModeToggle" onclick="toggleDarkMode()" title="Toggle dark mode">${darkMode ? '☀️' : '🌙'}</button><button class="btn btn-primary" onclick="openTreatmentModal()">+ Add Treatment</button>`;
+  el.innerHTML = `
+    <div class="card">
+      <div class="card-body" style="padding:0;">
+        <div class="table-wrap"><table>
+          <thead><tr><th>Patient</th><th>Treatment</th><th>Cost</th><th>Status</th><th>Notes</th><th>Actions</th></tr></thead>
+          <tbody>${data.treatments.map(t => {
+            const p = data.patients.find(p => p.id === t.patientId);
+            return `<tr>
+              <td><strong>${p ? p.firstName+' '+p.lastName : 'Unknown'}</strong></td>
+              <td>${t.name}</td>
+              <td>$${t.cost.toLocaleString()}</td>
+              <td><span class="status-badge status-${t.status==='Completed'?'completed':t.status==='In Progress'?'confirmed':'pending'}">${t.status}</span></td>
+              <td style="max-width:200px;">${t.notes}</td>
+              <td>
+                ${t.status!=='Completed'?`<button class="btn btn-sm btn-accent" onclick="completeTreatment(${t.id})">Complete</button>`:''}
+              </td>
+            </tr>`;
+          }).join('')}</tbody>
+        </table></div>
+      </div>
+    </div>
+  `;
+}
+
+// ========== PATIENT NAVIGATION ==========
+function showPatientPage(page) {
+  currentPatientPage = page;
+  document.querySelectorAll('#patientApp .nav-item').forEach((el,i) => {
+    const pages = ['dashboard','appointments','dental-chart','health-history','treatments'];
+    el.classList.toggle('active', pages[i] === page);
+  });
+  renderPatientContent();
+}
+
+function renderPatientContent() {
+  const titles = { dashboard:'My Dashboard', appointments:'My Appointments', 'dental-chart':'My Dental Chart', 'health-history':'My Health History', treatments:'My Treatments' };
+  document.getElementById('patientPageTitle').textContent = titles[currentPatientPage];
+  document.getElementById('patientTopbarActions').innerHTML = `<button class="btn-icon" id="patientDarkModeToggle" onclick="toggleDarkMode()" title="Toggle dark mode">${darkMode ? '☀️' : '🌙'}</button>`;
+
+  const content = document.getElementById('patientPageContent');
+
+  switch(currentPatientPage) {
+    case 'dashboard': renderPatientDashboard(); break;
+    case 'appointments': renderPatientAppointments(content); break;
+    case 'dental-chart': renderPatientDentalChart(content); break;
+    case 'health-history': renderPatientHealthHistory(content); break;
+    case 'treatments': renderPatientTreatments(content); break;
+  }
+}
+
+function getTimeBasedGreeting() {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good morning';
+  if (hour < 17) return 'Good afternoon';
+  return 'Good evening';
+}
+
+function getSeasonalMessage() {
+  const month = new Date().getMonth();
+  if (month === 3) return ' Spring is here — time for a spring clean... of your teeth! 🌸';
+  if (month >= 11 || month === 0) return ' Winter is here — stay strong, brush bright! ❄️';
+  if (month >= 5 && month <= 7) return ' Summer vibes! Keep smiling bright! ☀️';
+  if (month >= 8 && month <= 10) return ' Fall into good dental habits! 🍂';
+  return '';
+}
+
+function renderPatientDashboard() {
+  const content = document.getElementById('patientPageContent');
+  const patient = data.patients.find(p => p.id === currentUser.patientId);
+  if (!patient) return;
+
+  const patientAppts = data.appointments.filter(a => a.patientId === patient.id);
+  const nextAppt = patientAppts.filter(a => a.date >= new Date().toISOString().split('T')[0]).sort((a,b) => (a.date+a.time).localeCompare(b.date+b.time))[0];
+  const completedAppts = patientAppts.filter(a => a.status === 'Completed').length;
+  const patientTreatments = data.treatments.filter(t => t.patientId === patient.id);
+  const completedTreatments = patientTreatments.filter(t => t.status === 'Completed').length;
+
+  const grade = calculateDentalHealth(patient.id);
+  const streak = calculateSmileStreak(patient.id);
+  const teethSaved = getTeethSaved(patient.id);
+  const daysUntil = getDaysUntilNextAppointment(patient.id);
+  const quote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
+
+  content.innerHTML = `
+    <div class="pun-banner"><span>🦷</span> <span>${getPun()}</span></div>
+
+    <div class="welcome-message">
+      <h2>${getTimeBasedGreeting()}, ${patient.firstName}!</h2>
+      <p>Your dental health portal. Review your appointments, treatments, and dental records anytime.${getSeasonalMessage()}</p>
+    </div>
+
+    <div class="health-grade-container">
+      <div class="health-grade-badge grade-${getGradeClass(grade.overallScore)}">
+        ${grade.letter}
+      </div>
+      <div class="health-grade-details">
+        <h3>Your Dental Health Grade</h3>
+        <div class="grade-factor">
+          <span class="grade-factor-name">Dental Chart Score (60%)</span>
+          <span class="grade-factor-score">${grade.chartScore.toFixed(0)} pts</span>
+        </div>
+        <div class="grade-factor">
+          <span class="grade-factor-name">Visit Consistency (40%)</span>
+          <span class="grade-factor-score">${grade.visitScore.toFixed(0)} pts</span>
+        </div>
+        <div class="grade-factor" style="border-bottom: 2px solid var(--border); padding-top: 12px; margin-top: 8px;">
+          <span style="font-weight: 600;">Overall Score</span>
+          <span class="grade-factor-score">${grade.overallScore.toFixed(0)}/100</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;">
+      <div class="stat-card stat-blue">
+        <div class="stat-icon">📅</div>
+        <div class="stat-value">${patientAppts.length}</div>
+        <div class="stat-label">Total Appointments</div>
+      </div>
+      <div class="stat-card stat-green">
+        <div class="stat-icon">✓</div>
+        <div class="stat-value">${completedAppts}</div>
+        <div class="stat-label">Completed Visits</div>
+      </div>
+      <div class="stat-card stat-yellow">
+        <div class="stat-icon">💊</div>
+        <div class="stat-value">${patientTreatments.length}</div>
+        <div class="stat-label">Treatment Plans</div>
+      </div>
+      <div class="stat-card stat-red">
+        <div class="stat-icon">🔥</div>
+        <div class="stat-value"><span class="streak-display">${streak}${streak > 0 ? '🔥'.repeat(Math.min(streak, 3)) : ''}</span></div>
+        <div class="stat-label">Smile Streak</div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;">
+      <div class="stat-card" style="background: linear-gradient(135deg, rgba(76,175,80,0.1) 0%, rgba(76,175,80,0.05) 100%); border: 2px solid #4CAF50;">
+        <div class="stat-icon" style="background: rgba(76,175,80,0.2); color: #4CAF50;">🦷</div>
+        <div class="stat-value" style="color: #4CAF50;">${teethSaved}</div>
+        <div class="stat-label">Teeth Saved</div>
+      </div>
+      <div class="stat-card" style="background: linear-gradient(135deg, rgba(33,150,243,0.1) 0%, rgba(33,150,243,0.05) 100%); border: 2px solid #2196F3;">
+        <div class="stat-icon" style="background: rgba(33,150,243,0.2); color: #2196F3;">⏰</div>
+        <div class="stat-value" style="color: #2196F3;">${daysUntil !== null ? daysUntil : '—'}</div>
+        <div class="stat-label">Days Until Visit</div>
+      </div>
+      <div class="stat-card" style="background: linear-gradient(135deg, rgba(255,152,0,0.1) 0%, rgba(255,152,0,0.05) 100%); border: 2px solid #FF9800;">
+        <div class="stat-icon" style="background: rgba(255,152,0,0.2); color: #FF9800;">💡</div>
+        <div class="stat-label" style="font-size: 11px; margin-top: 8px;"><em>"${quote}"</em></div>
+      </div>
+    </div>
+
+    ${renderAchievementBadges(patient.id)}
+
+    <div class="card" style="margin-top: 24px;">
+      <div class="card-header"><h3>Your Next Appointment</h3></div>
+      <div class="card-body">
+        ${nextAppt ? `
+          <div class="schedule-item">
+            <div class="schedule-time">${formatTime(nextAppt.time)}</div>
+            <div class="schedule-info">
+              <div class="patient-name">${nextAppt.procedure}</div>
+              <div class="procedure">${formatDate(nextAppt.date)} &middot; ${nextAppt.duration} minutes</div>
+            </div>
+            <span class="status-badge status-${nextAppt.status.toLowerCase()}">
+              ${nextAppt.status}
+              <span class="status-tooltip">${getStatusMessage(nextAppt.status)}</span>
+            </span>
+          </div>
+        ` : '<div class="empty-state"><div class="icon">📅</div><p>No upcoming appointments — Schedule one today!</p></div>'}
+      </div>
+    </div>
+  `;
+
+  setInterval(rotatePatiendPun, 8000);
+}
+
+function calculateDentalHealth(patientId) {
+  const chart = data.dentalChart[patientId] || {};
+  const appts = data.appointments.filter(a => a.patientId === patientId);
+
+  let healthyTeeth = 0;
+  let problemTeeth = 0;
+  for (let tooth in chart) {
+    if (chart[tooth] === 'healthy') healthyTeeth++;
+    else if (chart[tooth] === 'cavity' || chart[tooth] === 'missing') problemTeeth++;
+  }
+  const totalRecorded = healthyTeeth + problemTeeth;
+  let chartScore = 80;
+  if (totalRecorded > 0) {
+    chartScore = (healthyTeeth / (healthyTeeth + problemTeeth)) * 100;
+  }
+
+  const today = new Date();
+  const oneYearAgo = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
+  const lastYearVisits = appts.filter(a => {
+    const apptDate = new Date(a.date);
+    return apptDate >= oneYearAgo && a.status === 'Completed';
+  }).length;
+
+  let visitScore = 0;
+  if (lastYearVisits >= 2) visitScore = 100;
+  else if (lastYearVisits === 1) visitScore = 60;
+  else visitScore = 20;
+
+  const overallScore = (chartScore * 0.6) + (visitScore * 0.4);
+  const letter = getGradeLetter(overallScore);
+
+  return { chartScore, visitScore, overallScore, letter };
+}
+
+function getGradeLetter(score) {
+  if (score >= 95) return 'A+';
+  if (score >= 90) return 'A';
+  if (score >= 85) return 'B+';
+  if (score >= 80) return 'B';
+  if (score >= 75) return 'C+';
+  if (score >= 70) return 'C';
+  if (score >= 60) return 'D';
+  return 'F';
+}
+
+function getGradeClass(score) {
+  if (score >= 95) return 'a-plus';
+  if (score >= 90) return 'a';
+  if (score >= 80) return 'b';
+  if (score >= 70) return 'c';
+  if (score >= 60) return 'd';
+  return 'f';
+}
+
+function getStatusMessage(status) {
+  const messages = {
+    'Confirmed': "We're ready for you! 🦷",
+    'Pending': "Almost there... just confirm! ⏳",
+    'Completed': "Nailed it! Your smile thanks you! ✨",
+    'Cancelled': "We missed you! Reschedule soon? 💔",
+  };
+  return messages[status] || status;
+}
+
+// ========== PATIENT APPOINTMENTS ==========
+function renderPatientAppointments(el) {
+  const patient = data.patients.find(p => p.id === currentUser.patientId);
+  const patientAppts = data.appointments.filter(a => a.patientId === patient.id).sort((a,b) => (b.date+b.time).localeCompare(a.date+a.time));
+
+  el.innerHTML = `
+    <div class="card">
+      <div class="card-body" style="padding:0;">
+        <div class="table-wrap"><table>
+          <thead><tr><th>Date</th><th>Time</th><th>Procedure</th><th>Duration</th><th>Status</th></tr></thead>
+          <tbody>${patientAppts.length ? patientAppts.map(a => `<tr>
+            <td>${formatDate(a.date)}</td>
+            <td>${formatTime(a.time)}</td>
+            <td>${a.procedure}</td>
+            <td>${a.duration} min</td>
+            <td><span class="status-badge status-${a.status.toLowerCase()}">
+              ${a.status}
+              <span class="status-tooltip">${getStatusMessage(a.status)}</span>
+            </span></td>
+          </tr>`).join('') : '<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-light);">No appointments</td></tr>'}</tbody>
+        </table></div>
+      </div>
+    </div>
+  `;
+}
+
+// ========== PATIENT DENTAL CHART ==========
+function renderPatientDentalChart(el) {
+  const chart = data.dentalChart[currentUser.patientId] || {};
+  const upperTeeth = [18,17,16,15,14,13,12,11,21,22,23,24,25,26,27,28];
+  const lowerTeeth = [48,47,46,45,44,43,42,41,31,32,33,34,35,36,37,38];
+
+  function toothHTML(nums) {
+    return nums.map(n => {
+      const status = chart[n] || '';
+      return `<div class="tooth ${status} readonly" title="Tooth #${n}">${n}</div>`;
+    }).join('');
+  }
+
+  el.innerHTML = `
+    <div class="card">
+      <div class="card-header"><h3>Your Dental Chart</h3></div>
+      <div class="card-body">
+        <div class="tooth-chart">
+          <div style="font-size:12px;font-weight:600;color:var(--text-light);">UPPER</div>
+          <div class="tooth-row">${toothHTML(upperTeeth)}</div>
+          <div style="width:80%;height:1px;background:var(--border);"></div>
+          <div class="tooth-row">${toothHTML(lowerTeeth)}</div>
+          <div style="font-size:12px;font-weight:600;color:var(--text-light);">LOWER</div>
+        </div>
+        <div style="display:flex;gap:16px;justify-content:center;margin-top:12px;font-size:11px;">
+          <span><span class="tooth healthy" style="display:inline-block;width:16px;height:16px;font-size:0;vertical-align:middle;"></span> Healthy</span>
+          <span><span class="tooth cavity" style="display:inline-block;width:16px;height:16px;font-size:0;vertical-align:middle;"></span> Cavity</span>
+          <span><span class="tooth treated" style="display:inline-block;width:16px;height:16px;font-size:0;vertical-align:middle;"></span> Treated</span>
+          <span><span class="tooth missing" style="display:inline-block;width:16px;height:16px;font-size:0;vertical-align:middle;"></span> Missing</span>
+        </div>
+        <p style="margin-top:16px;color:var(--text-light);font-size:13px;text-align:center;">This is a read-only view of your dental chart. Contact our office to discuss any concerns.</p>
+      </div>
+    </div>
+  `;
+}
+
+// ========== PATIENT HEALTH HISTORY ==========
+function renderPatientHealthHistory(el) {
+  const patient = data.patients.find(p => p.id === currentUser.patientId);
+  const patientLog = data.healthLog.filter(h => h.patientId === patient.id).sort((a,b) => b.date.localeCompare(a.date));
+  const typeColors = { Exam:'#2a7de1', Treatment:'#00c9a7', 'Follow-up':'#f0ad4e', Symptom:'#e74c3c', 'X-Ray':'#8e44ad', Note:'#7f8c9b' };
+
+  el.innerHTML = `
+    <div class="card"><div class="card-body">
+      ${patientLog.length ? patientLog.map(h => `
+        <div class="health-entry">
+          <div class="entry-header">
+            <div><strong>${h.type}</strong>${h.tooth ? ' &middot; Tooth #'+h.tooth : ''}</div>
+            <span class="entry-date">${formatDate(h.date)}</span>
+          </div>
+          <p style="font-size:13px;color:var(--text);margin-top:4px;">${h.desc}</p>
+        </div>
+      `).join('') : '<div class="empty-state"><div class="icon">📋</div><p>No health history entries yet</p></div>'}
+    </div></div>
+  `;
+}
+
+// ========== PATIENT TREATMENTS ==========
+function renderPatientTreatments(el) {
+  const patient = data.patients.find(p => p.id === currentUser.patientId);
+  const patientTreatments = data.treatments.filter(t => t.patientId === patient.id);
+
+  el.innerHTML = `
+    <div class="card">
+      <div class="card-body" style="padding:0;">
+        <div class="table-wrap"><table>
+          <thead><tr><th>Treatment</th><th>Cost</th><th>Status</th><th>Notes</th></tr></thead>
+          <tbody>${patientTreatments.length ? patientTreatments.map(t => `<tr>
+            <td>${t.name}</td>
+            <td>$${t.cost.toLocaleString()}</td>
+            <td><span class="status-badge status-${t.status==='Completed'?'completed':t.status==='In Progress'?'confirmed':'pending'}">${t.status}</span></td>
+            <td style="max-width:200px;">${t.notes}</td>
+          </tr>`).join('') : '<tr><td colspan="4" style="text-align:center;padding:40px;color:var(--text-light);">No treatments planned</td></tr>'}</tbody>
+        </table></div>
+      </div>
+    </div>
+  `;
+}
+
+// ========== MODALS & ACTIONS ==========
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function openPatientModal(id) {
+  editingPatientId = id || null;
+  document.getElementById('patientModalTitle').textContent = id ? 'Edit Patient' : 'Add New Patient';
+  if (id) {
+    const p = data.patients.find(p => p.id === id);
+    document.getElementById('pFirstName').value = p.firstName;
+    document.getElementById('pLastName').value = p.lastName;
+    document.getElementById('pDOB').value = p.dob;
+    document.getElementById('pPhone').value = p.phone;
+    document.getElementById('pEmail').value = p.email;
+    document.getElementById('pInsurance').value = p.insurance;
+    document.getElementById('pPolicy').value = p.policy;
+    document.getElementById('pNotes').value = p.notes;
+  } else {
+    ['pFirstName','pLastName','pDOB','pPhone','pEmail','pInsurance','pPolicy','pNotes'].forEach(id => document.getElementById(id).value = '');
+  }
+  openModal('patientModal');
+}
+
+function savePatient() {
+  const obj = {
+    firstName: document.getElementById('pFirstName').value.trim(),
+    lastName: document.getElementById('pLastName').value.trim(),
+    dob: document.getElementById('pDOB').value,
+    phone: document.getElementById('pPhone').value.trim(),
+    email: document.getElementById('pEmail').value.trim(),
+    insurance: document.getElementById('pInsurance').value.trim(),
+    policy: document.getElementById('pPolicy').value.trim(),
+    notes: document.getElementById('pNotes').value.trim(),
+  };
+  if (!obj.firstName || !obj.lastName) return alert('First and last name are required.');
+  if (editingPatientId) {
+    const p = data.patients.find(p => p.id === editingPatientId);
+    Object.assign(p, obj);
+  } else {
+    obj.id = data.nextId.patients++;
+    obj.created = new Date().toISOString().split('T')[0];
+    data.patients.push(obj);
+  }
+  closeModal('patientModal');
+  render();
+}
+
+function editPatient(id) { openPatientModal(id); }
+function viewPatientChart(id) { selectedChartPatient = id; selectedTooth = null; showPage('dental-chart'); }
+
+function populatePatientSelect(selectId) {
+  const sel = document.getElementById(selectId);
+  sel.innerHTML = data.patients.map(p => `<option value="${p.id}">${p.firstName} ${p.lastName}</option>`).join('');
+}
+
+function openApptModal() {
+  ['aDate','aTime','aNotes'].forEach(id => { if(id==='aTime') document.getElementById(id).value='09:00'; else document.getElementById(id).value=''; });
+  document.getElementById('aDate').value = new Date().toISOString().split('T')[0];
+  populatePatientSelect('aPatient');
+  openModal('apptModal');
+}
+
+function saveAppointment() {
+  const obj = {
+    id: data.nextId.appointments++,
+    patientId: +document.getElementById('aPatient').value,
+    date: document.getElementById('aDate').value,
+    time: document.getElementById('aTime').value,
+    procedure: document.getElementById('aProcedure').value,
+    duration: +document.getElementById('aDuration').value,
+    status: document.getElementById('aStatus').value,
+    notes: document.getElementById('aNotes').value.trim(),
+  };
+  if (!obj.date) return alert('Date is required.');
+  data.appointments.push(obj);
+  closeModal('apptModal');
+  render();
+}
+
+function completeAppt(id) { const a = data.appointments.find(a => a.id === id); if(a) a.status = 'Completed'; createConfetti(); render(); }
+function cancelAppt(id) { const a = data.appointments.find(a => a.id === id); if(a) a.status = 'Cancelled'; render(); }
+
+function openHealthModal() {
+  ['hDate','hTooth','hDesc'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('hDate').value = new Date().toISOString().split('T')[0];
+  populatePatientSelect('hPatient');
+  openModal('healthModal');
+}
+
+function saveHealthEntry() {
+  const obj = {
+    id: data.nextId.healthLog++,
+    patientId: +document.getElementById('hPatient').value,
+    date: document.getElementById('hDate').value,
+    type: document.getElementById('hType').value,
+    tooth: document.getElementById('hTooth').value.trim(),
+    desc: document.getElementById('hDesc').value.trim(),
+  };
+  if (!obj.desc) return alert('Description is required.');
+  data.healthLog.push(obj);
+  closeModal('healthModal');
+  render();
+}
+
+function openTreatmentModal() {
+  ['tName','tNotes'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('tCost').value = 0;
+  populatePatientSelect('tPatient');
+  openModal('treatmentModal');
+}
+
+function saveTreatment() {
+  const obj = {
+    id: data.nextId.treatments++,
+    patientId: +document.getElementById('tPatient').value,
+    name: document.getElementById('tName').value.trim(),
+    cost: +document.getElementById('tCost').value,
+    status: document.getElementById('tStatus').value,
+    notes: document.getElementById('tNotes').value.trim(),
+  };
+  if (!obj.name) return alert('Treatment name is required.');
+  data.treatments.push(obj);
+  closeModal('treatmentModal');
+  render();
+}
+
+function completeTreatment(id) { const t = data.treatments.find(t => t.id === id); if(t) { t.status = 'Completed'; createConfetti(); } render(); }
+
+// ========== HELPERS ==========
+function formatDate(d) { if(!d) return ''; const parts = d.split('-'); return `${+parts[1]}/${+parts[2]}/${parts[0]}`; }
+function formatTime(t) { if(!t) return ''; const [h,m] = t.split(':'); const hr = +h; return `${hr>12?hr-12:hr||12}:${m} ${hr>=12?'PM':'AM'}`; }
+
+// ========== INIT ==========
+if (darkMode) document.body.classList.add('dark-mode');
+initKonamiCode();
+document.getElementById('loginContainer').classList.add('show');
+</script>
+</body>
+</html>
